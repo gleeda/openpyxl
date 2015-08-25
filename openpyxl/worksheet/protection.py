@@ -1,8 +1,13 @@
 from __future__ import absolute_import
 # Copyright (c) 2010-2015 openpyxl
 
-from openpyxl.descriptors import Strict, Bool, String, Alias, Integer
-from openpyxl.compat import safe_string
+from openpyxl.descriptors import (
+    Bool,
+    String,
+    Alias,
+    Integer,
+)
+from openpyxl.descriptors.serialisable import Serialisable
 
 
 def hash_password(plaintext_password=''):
@@ -26,12 +31,14 @@ def hash_password(plaintext_password=''):
     return str(hex(password)).upper()[2:]
 
 
-class SheetProtection(Strict):
+class SheetProtection(Serialisable):
     """
     Information about protection of various aspects of a sheet. True values
     mean that protection for the object or action is active This is the
     **default** when protection is active, ie. users cannot do something
     """
+
+    tagname = "sheetProtection"
 
     sheet = Bool()
     enabled = Alias('sheet')
@@ -55,6 +62,12 @@ class SheetProtection(Strict):
     algorithmName = String(allow_none=True)
 
     _password = None
+
+    __attrs__ = ('selectLockedCells', 'selectUnlockedCells', 'algorithmName',
+              'sheet', 'objects', 'insertRows', 'insertHyperlinks', 'autoFilter',
+              'scenarios', 'formatColumns', 'deleteColumns', 'insertColumns',
+              'pivotTables', 'deleteRows', 'formatCells', 'saltValue', 'formatRows',
+              'sort', 'spinCount', 'password')
 
 
     def __init__(self, sheet=False, objects=False, scenarios=False,
@@ -80,7 +93,7 @@ class SheetProtection(Strict):
         self.autoFilter = autoFilter
         self.pivotTables = pivotTables
         if password is not None:
-            self.set_password(password)
+            self.password = password
         self.algorithmName = algorithmName
         self.saltValue = saltValue
         self.spinCount = spinCount
@@ -101,7 +114,7 @@ class SheetProtection(Strict):
     @password.setter
     def password(self, value):
         """Set a password directly, forcing a hash step."""
-        self.set_password(value, already_hashed=False)
+        self.set_password(value)
 
 
     def enable(self):
@@ -110,14 +123,3 @@ class SheetProtection(Strict):
 
     def disable(self):
         self.sheet = False
-
-
-    def __iter__(self):
-        for key in ('sheet', 'objects', 'scenarios', 'formatCells',
-                  'formatRows', 'formatColumns', 'insertColumns', 'insertRows',
-                  'insertHyperlinks', 'deleteColumns', 'deleteRows',
-                  'selectLockedCells', 'selectUnlockedCells', 'sort', 'autoFilter',
-                  'pivotTables', 'password', 'algorithmName', 'saltValue', 'spinCount'):
-            value = getattr(self, key)
-            if value is not None:
-                yield key, safe_string(value)
