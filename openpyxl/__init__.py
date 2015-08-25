@@ -6,8 +6,11 @@
 
 import json
 import os
+import sys
 
 here = os.path.abspath(os.path.dirname(__file__))
+if hasattr(sys, '_MEIPASS'):
+    here = sys._MEIPASS
 src_file = os.path.join(here, ".constants.json")
 with open(src_file) as src:
     constants = json.load(src)
